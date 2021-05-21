@@ -60,6 +60,7 @@ class Handler extends ExceptionHandler
                 ->json(
                     array_merge(
                         [
+                            'message' => sprintf('status.%d', $exception->status ?? Response::HTTP_UNPROCESSABLE_ENTITY),
                             'errors' => $exception->getResponse()->original,
                         ],
                         $response ?? []
@@ -71,7 +72,7 @@ class Handler extends ExceptionHandler
         if ($exception instanceof NotFoundHttpException) {
             return response()
                 ->json([
-                    'message' => __($exception->getMessage())
+                    'message' => __('status.404'),
                 ], Response::HTTP_NOT_FOUND);
         }
 

@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Models\User;
+use App\Models\V1\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Repositories\V1\UserRepository;
@@ -35,19 +36,21 @@ class UsersController extends Controller implements UsersControllerInterface
     /**
      * @inheritDoc
      */
-    public function index(Request $request): array
+    public function index(Request $request): JsonResponse
     {
-        return $this->repository
-            ->all(
-                (int) $request->query
-                    ->get('perPage', 10)
-            );
+        return $this->response(
+            $this->repository
+                ->all(
+                    (int) $request->query
+                        ->get('perPage', 10)
+                )
+        );
     }
 
     /**
      * @inheritDoc
      */
-    public function store(Request $request): array
+    public function store(Request $request): JsonResponse
     {
         $request->merge([
             'type' => $request->get('type', 'default'),
@@ -65,27 +68,30 @@ class UsersController extends Controller implements UsersControllerInterface
             'password' => ['string', 'confirmed'],
         ]);
 
-        return $this->repository
-            ->store(
-                $request->all()
-            );
+        return $this->response(
+            $this->repository
+                ->store(
+                    $request->all()
+                )
+        );
     }
 
     /**
      * @inheritDoc
      */
-    public function show(string $id): array
+    public function show(string $id): JsonResponse
     {
         $this->exists($id, User::class);
 
-        return $this->repository
-            ->find($id);
+        return $this->response(
+            $this->repository->find($id)
+        );
     }
 
     /**
      * @inheritDoc
      */
-    public function update(Request $request, string $id): array
+    public function update(Request $request, string $id): JsonResponse
     {
         $this->exists($id, User::class);
 
@@ -105,29 +111,38 @@ class UsersController extends Controller implements UsersControllerInterface
             'password' => ['string', 'confirmed'],
         ]);
 
-        return $this->repository
-            ->update(
-                $id,
-                $request->all()
-            );
+        return $this->response(
+            $this->repository
+                ->update(
+                    $id,
+                    $request->all()
+                )
+        );
     }
 
     /**
      * @inheritDoc
      */
-    public function destroy(string $id): array
+    public function destroy(string $id): JsonResponse
     {
         $this->exists($id, User::class);
 
         $deleted = $this->repository
             ->destroy($id);
 
-        return compact('deleted');
+        return $this->response(
+            compact('deleted')
+        );
     }
 
-    public function search(Request $request): array
+    /**
+     * @inheritDoc
+     */
+    public function search(Request $request): JsonResponse
     {
-        return $this->repository
-            ->search($request);
+        return $this->response(
+            $this->repository
+                ->search($request)
+        );
     }
 }

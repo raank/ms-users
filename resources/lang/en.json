@@ -1,0 +1,11 @@
+{
+    "status.200": "Successful action",
+    "status.201": "Information has been successfully registered",
+    "status.304": "Content unchanged",
+    "status.404": "This information could not be found",
+    "status.400": "This information could not be processed",
+    "status.401": "You are not authorized for this action",
+    "status.406": "Information was not accepted",
+    "status.500": "Internal error",
+    "status.503": "Service Unavailable"
+}
