@@ -4,26 +4,26 @@ namespace App\Repositories\V1;
 
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use App\Models\User as Model;
+use App\Models\V1\User as Model;
 use App\Processors\BodyBuilder;
 use App\Repositories\RepositoryInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class UserRepository implements RepositoryInterface
 {
     /**
      * @inheritDoc
      */
-    public function all(int $perPage = 20): array
+    public function all(int $perPage = 20): LengthAwarePaginator
     {
         return Model::orderBy('created_at', 'DESC')
-            ->paginate($perPage)
-            ->toArray();
+            ->paginate($perPage);
     }
 
     /**
      * @inheritDoc
      */
-    public function store(array $data): array
+    public function store(array $data)
     {
         $fillable = [];
 
@@ -31,23 +31,21 @@ class UserRepository implements RepositoryInterface
             $fillable[$key] = $data[$key] ?? null;
         }
 
-        return Model::create($fillable)
-            ->toArray();
+        return Model::create($fillable);
     }
 
     /**
      * @inheritDoc
      */
-    public function find(string $id): array
+    public function find(string $id)
     {
-        return Model::find($id)
-            ->toArray();
+        return Model::find($id);
     }
 
     /**
      * @inheritDoc
      */
-    public function update(string $id, array $data): array
+    public function update(string $id, array $data)
     {
         $fillable = [];
 
@@ -58,13 +56,13 @@ class UserRepository implements RepositoryInterface
         Model::find($id)
             ->update($fillable);
 
-        return Model::find($id)->toArray();
+        return Model::find($id);
     }
 
     /**
      * @inheritDoc
      */
-    public function destroy(string $id): bool
+    public function destroy(string $id)
     {
         return Model::find($id)
             ->delete();
@@ -73,10 +71,22 @@ class UserRepository implements RepositoryInterface
     /**
      * @inheritDoc
      */
-    public function search(Request $request): array
+    public function search(Request $request): LengthAwarePaginator
     {
         return (new BodyBuilder($request->all()))
-            ->builder(Model::class)
-            ->toArray();
+            ->builder(Model::class);
+    }
+
+    /**
+     * Find user by field and value.
+     *
+     * @param string $field
+     * @param mixed $value
+     *
+     * @return Model
+     */
+    public function findByField(string $field, $value)
+    {
+        return Model::where($field, '=', $value)->first();
     }
 }

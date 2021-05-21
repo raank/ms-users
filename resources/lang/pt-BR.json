@@ -1,0 +1,11 @@
+{
+    "status.200": "Ação realizada com sucesso!",
+    "status.201": "Informação foi registrada com sucesso!",
+    "status.304": "Conteúdo não alterado!",
+    "status.404": "Não foi possível encontrar essa informação!",
+    "status.400": "Não foi possível processar essa informação!",
+    "status.401": "Você não tem autorização para essa ação!",
+    "status.406": "Informações não foram aceitas!",
+    "status.500": "Erro interno!",
+    "status.503": "Serviço não disponível!"
+}
