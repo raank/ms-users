@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\V1;
 
 use App\Models\V1\User;
+use App\Processors\AwsSQS;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Jobs\SendMailMailgunSQS;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use App\Repositories\V1\UserRepository;
 use App\Http\Controllers\AuthControllerInterface;
 
@@ -33,7 +36,17 @@ class AuthController extends Controller implements AuthControllerInterface
     ) {
         $this->repository = $repository;
 
-        $this->middleware('auth:api', ['except' => ['register', 'login']]);
+        $this->middleware(
+            'auth:api',
+            [
+                'except' => [
+                    'register',
+                    'login',
+                    'forgot',
+                    'reset'
+                ]
+            ]
+        );
     }
 
     /**
@@ -55,13 +68,13 @@ class AuthController extends Controller implements AuthControllerInterface
             'document' => ['string'],
             'active' => ['boolean'],
             'password' => ['string', 'confirmed'],
+            'password_confirmation' => ['required']
         ]);
 
         $user = $this->repository
             ->store(
                 $request->all()
             );
-        
 
         $response = array_merge([
             'access_token' => Auth::attempt($request->only(['email', 'password'])),
@@ -70,7 +83,7 @@ class AuthController extends Controller implements AuthControllerInterface
         ], $user->toArray());
 
         return $this->response(
-            $response
+            $response, JsonResponse::HTTP_ACCEPTED
         );
     }
 
@@ -91,12 +104,7 @@ class AuthController extends Controller implements AuthControllerInterface
             );
 
         if (!$token = Auth::attempt($request->only(['email', 'password']))) {
-            return $this->response(
-                [
-                    'message' => __('Unauthorized')
-                ],
-                JsonResponse::HTTP_UNAUTHORIZED
-            );
+            return $this->invalidCredentials();
         }
 
         $response = array_merge([
@@ -119,10 +127,66 @@ class AuthController extends Controller implements AuthControllerInterface
             'email' => ['required', 'email', 'exists:users,email'],
         ]);
 
+        $object = $request->all();
+
+        $job = (new SendMailMailgunSQS(User::where('email', 'raank@pm.me')->first(), $object))
+            ->setSubject(__('Reset your password!'))
+            ->onQueue(
+                config('aws.sqs.queue')
+            );
+
+        $dispatch = $job->dispatch();
+
+        return response()->json($dispatch);
+
+        $env = env('APP_ENV');
+
         $user = $this->repository
             ->findByField('email', $request->get('email'));
 
+        if (env('APP_ENV') === 'testing') {
+            Mail::to($user)
+                ->send();
+        }
+        $this->repository
+            ->sendMailForgotPassword($user);
+
         return $this->response();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function reset(Request $request, string $token): JsonResponse
+    {
+        $this->validate($request, [
+            'password' => ['string', 'confirmed'],
+            'password_confirmation' => ['required']
+        ]);
+
+        $request->merge([
+            'remember_token' => Str::random(32)
+        ]);
+
+        $user = $this->repository
+            ->findByField('remember_token', $token);
+
+        if (!isset($user)) {
+            return $this->notfound();
+        }
+
+        $updated = $this->repository
+            ->update(
+                $user->_id,
+                $request->only([
+                    'password',
+                    'remember_token'
+                ])
+            );
+
+        return $this->response(
+            compact('updated')
+        );
     }
 
     /**
@@ -133,12 +197,7 @@ class AuthController extends Controller implements AuthControllerInterface
         $user = $request->user();
 
         if (!isset($user)) {
-            return $this->response(
-                [
-                    'message' => __('status.' . JsonResponse::HTTP_UNAUTHORIZED)
-                ],
-                JsonResponse::HTTP_UNAUTHORIZED
-            );
+            return $this->unauthorized();
         }
 
         return $this->response(
@@ -154,12 +213,7 @@ class AuthController extends Controller implements AuthControllerInterface
         $user = $request->user();
 
         if (!isset($user)) {
-            return $this->response(
-                [
-                    'message' => __('Unauthorized')
-                ],
-                JsonResponse::HTTP_UNAUTHORIZED
-            );
+            return $this->unauthorized();
         }
 
         return $this->response([

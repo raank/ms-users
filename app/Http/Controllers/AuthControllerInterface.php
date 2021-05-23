@@ -38,10 +38,11 @@ interface AuthControllerInterface
      * Reset password of users.
      *
      * @param Request $request
+     * @param string $token
      *
      * @return JsonResponse
      */
-    //public function reset(Request $request): JsonResponse;
+    public function reset(Request $request, string $token): JsonResponse;
 
     /**
      * Check token.

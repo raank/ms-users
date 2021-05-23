@@ -6,6 +6,7 @@
     "type": "project",
     "require": {
         "php": "^7.3|^8.0",
+        "aws/aws-sdk-php": "^3.183",
         "jenssegers/mongodb": "^3.8",
         "laravel/lumen-framework": "^8.0",
         "tymon/jwt-auth": "^1.0"
