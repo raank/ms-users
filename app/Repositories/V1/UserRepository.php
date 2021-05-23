@@ -2,10 +2,12 @@
 
 namespace App\Repositories\V1;
 
+use App\Models\V1\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use App\Models\V1\User as Model;
 use App\Processors\BodyBuilder;
+use App\Models\V1\User as Model;
+use Illuminate\Support\Facades\Hash;
 use App\Repositories\RepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -47,16 +49,8 @@ class UserRepository implements RepositoryInterface
      */
     public function update(string $id, array $data)
     {
-        $fillable = [];
-
-        foreach ((new Model)->getFillable() as $key) {
-            $fillable[$key] = $data[$key] ?? null;
-        }
-
-        Model::find($id)
-            ->update($fillable);
-
-        return Model::find($id);
+        return Model::find($id)
+            ->update($data);
     }
 
     /**

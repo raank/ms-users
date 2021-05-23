@@ -3,7 +3,11 @@
 namespace App\Exceptions;
 
 use Throwable;
+use App\Exceptions\Exists;
+use App\Exceptions\Notfound;
 use Illuminate\Http\Response;
+use App\Exceptions\Validation;
+use App\Exceptions\Unauthorized;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -22,7 +26,19 @@ class Handler extends ExceptionHandler
         AuthorizationException::class,
         HttpException::class,
         ModelNotFoundException::class,
-        ValidationException::class,
+        ValidationException::class
+    ];
+
+
+    /**
+     * A list of the exception types to response like a json.
+     *
+     * @var array
+     */
+    protected $httpReports = [
+        Unauthorized::class,
+        Validation::class,
+        Notfound::class
     ];
 
     /**
@@ -51,16 +67,19 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
-        if ($exception instanceof ValidationException) {
-            if ($request->query->has('debug')) {
-                $response['throwable'] = $exception;
-            }
+        if (in_array(get_class($exception), $this->httpReports)) {
+            return response()
+                ->json([
+                    'message' => $exception->getMessage()
+                ], $exception->getCode());
+        }
 
+        if ($exception instanceof ValidationException) {
             return response()
                 ->json(
                     array_merge(
                         [
-                            'message' => sprintf('status.%d', $exception->status ?? Response::HTTP_UNPROCESSABLE_ENTITY),
+                            'message' => __(sprintf('status.%d', $exception->status ?? Response::HTTP_UNPROCESSABLE_ENTITY)),
                             'errors' => $exception->getResponse()->original,
                         ],
                         $response ?? []

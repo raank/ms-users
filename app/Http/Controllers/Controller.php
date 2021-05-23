@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\V1\User;
+use App\Exceptions\Notfound;
 use Illuminate\Http\Response;
+use App\Exceptions\Validation;
+use App\Exceptions\Unauthorized;
 use Illuminate\Http\JsonResponse;
 use Jenssegers\Mongodb\Eloquent\Model;
 use Laravel\Lumen\Routing\Controller as BaseController;
@@ -61,5 +64,43 @@ class Controller extends BaseController
                 $response,
                 $statusCode
             );
+    }
+
+    /**
+     * The invalid credentials exception.
+     *
+     * @throws Validation
+     *
+     * @return void
+     */
+    public function invalidCredentials()
+    {
+        throw new Validation(
+            __('invalid.credentials')
+        );
+    }
+
+    /**
+     * The unauthorized exception.
+     *
+     * @throws Unauthorized
+     *
+     * @return void
+     */
+    public function unauthorized()
+    {
+        throw new Unauthorized();
+    }
+
+    /**
+     * The unauthorized exception.
+     *
+     * @throws Notfound
+     *
+     * @return void
+     */
+    public function notfound()
+    {
+        throw new Notfound();
     }
 }

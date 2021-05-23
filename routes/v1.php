@@ -42,5 +42,8 @@ $router->group(
         $router->post('login', ['uses' => 'AuthController@login']);
         $router->get('check', ['uses' => 'AuthController@check']);
         $router->get('refresh', ['uses' => 'AuthController@refresh']);
+        $router->post('forgot', ['uses' => 'AuthController@forgot']);
+
+        $router->post('reset/{token}', ['uses' => 'AuthController@reset']);
     }
 );
