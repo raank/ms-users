@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Models\V1\User;
 use App\Processors\AwsSQS;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Jobs\SendMailMailgunSQS;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Repositories\V1\UserRepository;
+use App\Repositories\V1\MessageRepository;
 use App\Http\Controllers\AuthControllerInterface;
 
 class AuthController extends Controller implements AuthControllerInterface
@@ -25,6 +27,11 @@ class AuthController extends Controller implements AuthControllerInterface
     protected $repository;
 
     /**
+     * @var MessageRepository
+     */
+    protected $messages;
+
+    /**
      * Create a new controller instance.
      *
      * @param UserRepository $repository
@@ -32,9 +39,11 @@ class AuthController extends Controller implements AuthControllerInterface
      * @return void
      */
     public function __construct(
-        UserRepository $repository
+        UserRepository $repository,
+        MessageRepository $messages
     ) {
         $this->repository = $repository;
+        $this->messages = $messages;
 
         $this->middleware(
             'auth:api',
@@ -127,31 +136,35 @@ class AuthController extends Controller implements AuthControllerInterface
             'email' => ['required', 'email', 'exists:users,email'],
         ]);
 
-        $object = $request->all();
+        $user = $this->repository->findByField('email', $request->get('email'));
 
-        $job = (new SendMailMailgunSQS(User::where('email', 'raank@pm.me')->first(), $object))
+        $request->merge([
+            'url' => route('api.v1.auth.reset', [
+                'token' => $user->remember_token
+            ])
+        ]);
+
+        /** @var SendMailMailgunSQS | Sendmail with SQS */
+        $job = (new SendMailMailgunSQS($user, $request->all()))
             ->setSubject(__('Reset your password!'))
+            ->setMessageGroupId('forgot')
+            ->setTemplate('forgot-password')
             ->onQueue(
                 config('aws.sqs.queue')
+            )
+            ->setMessageAttributes(
+                Arr::only(
+                    $user->toArray(),
+                    ['name', 'email', 'username']
+                )
             );
 
-        $dispatch = $job->dispatch();
-
-        return response()->json($dispatch);
-
-        $env = env('APP_ENV');
-
-        $user = $this->repository
-            ->findByField('email', $request->get('email'));
-
-        if (env('APP_ENV') === 'testing') {
-            Mail::to($user)
-                ->send();
-        }
-        $this->repository
-            ->sendMailForgotPassword($user);
-
-        return $this->response();
+        return $this->response(
+            $this->messages
+                ->store(
+                    $job->dispatch()
+                )
+        );
     }
 
     /**

@@ -199,13 +199,16 @@ class AwsSQS
         $messages = [];
 
         foreach ($items as $key => $value) {
-            $messages[Str::cammel($key)] = [
+            $messages[ucfirst(Str::camel($key))] = [
                 'DataType' => is_numeric($value) ? 'Number' : 'String',
                 'StringValue' => (string) $value
             ];
         }
 
-        $this->messagesAttribute = $messages;
+        $this->messagesAttribute = array_merge(
+            $this->messagesAttribute ?? [],
+            $messages
+        );
 
         return $this;
     }
@@ -282,7 +285,22 @@ class AwsSQS
             $this->handle()
         );
 
-        // debugginhg
-        return $this->params();
+        /** @var array $params Message SQS Params */
+        $params = $this->params();
+
+        /** @var array $message */
+        $message = $this->client()
+            ->sendMessage($params)
+            ->toArray();
+
+        $response = array_merge(
+            Arr::only($message, [
+                'MessageId',
+                'SequenceNumber'
+            ]),
+            $params
+        );
+
+        return $response;
     }
 }

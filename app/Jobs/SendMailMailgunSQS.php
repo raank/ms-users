@@ -74,7 +74,7 @@ class SendMailMailgunSQS extends AwsSQS implements SqsJobEmailInterface
      */
     public function handle(): array
     {
-        $payload = [
+        return [
             'api_key' => env('MAILGUN_API_KEY'),
             'endpoint' => env('MAILGUN_ENDPOINT'),
             'from' => sprintf(
@@ -97,7 +97,5 @@ class SendMailMailgunSQS extends AwsSQS implements SqsJobEmailInterface
 
             'params' => $this->variables
         ];
-
-        return $this->variables;
     }
 }
