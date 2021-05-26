@@ -35,15 +35,15 @@ $router->group(
 
 $router->group(
     [
-        'prefix' => 'auth'
+        'prefix' => 'auth',
+        'as' => 'api.v1.auth'
     ],
     static function () use ($router) {
-        $router->post('register', ['uses' => 'AuthController@register']);
-        $router->post('login', ['uses' => 'AuthController@login']);
-        $router->get('check', ['uses' => 'AuthController@check']);
-        $router->get('refresh', ['uses' => 'AuthController@refresh']);
-        $router->post('forgot', ['uses' => 'AuthController@forgot']);
-
-        $router->post('reset/{token}', ['uses' => 'AuthController@reset']);
+        $router->post('register', ['as' => 'register', 'uses' => 'AuthController@register']);
+        $router->post('login', ['as' => 'login', 'uses' => 'AuthController@login']);
+        $router->get('check', ['as' => 'check', 'uses' => 'AuthController@check']);
+        $router->get('refresh', ['as' => 'refresh', 'uses' => 'AuthController@refresh']);
+        $router->post('forgot', ['as' => 'forgot', 'uses' => 'AuthController@forgot']);
+        $router->post('reset/{token}', ['as' => 'reset', 'uses' => 'AuthController@reset']);
     }
 );
