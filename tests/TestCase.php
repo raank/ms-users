@@ -2,10 +2,18 @@
 
 namespace Tests;
 
+use Illuminate\Support\Facades\Crypt;
 use Laravel\Lumen\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
+    /**
+     * The app token to Access.
+     *
+     * @var string
+     */
+    protected $appToken;
+
     /**
      * Setup the test environment.
      *
@@ -14,6 +22,8 @@ abstract class TestCase extends BaseTestCase
     public function setUp(): void
     {
         parent::setUp();
+
+        $this->appToken = Crypt::encrypt(env('APP_TOKEN'));
     }
 
     /**

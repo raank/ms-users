@@ -1,5 +1,19 @@
 <?php
 
+require_once __DIR__.'/../vendor/autoload.php';
+
+(new Laravel\Lumen\Bootstrap\LoadEnvironmentVariables(
+    dirname(__DIR__)
+))->bootstrap();
+
+/*
+|--------------------------------------------------------------------------
+| Define constants to Documentation.
+|--------------------------------------------------------------------------
+*/
+
+define('APP_URL', sprintf('%s/api', env('APP_URL')));
+
 /**
  * Informations of API.
  *

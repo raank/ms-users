@@ -45,7 +45,7 @@ class Documentation extends Command
      */
     public function handle()
     {
-        exec('./vendor/bin/openapi --bootstrap ./bootstrap/app.php --output ./swagger.yaml ./routes/api.php ./app');
+        exec('./vendor/bin/openapi --bootstrap ./routes/api.php --output ./swagger.yaml ./routes/api.php ./app');
     }
 
     /**

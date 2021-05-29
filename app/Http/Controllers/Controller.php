@@ -59,10 +59,6 @@ class Controller extends BaseController
             }
         }
 
-        if (empty($response['data'])) {
-            unset($response['data']);
-        }
-
         return response()
             ->json(
                 $response,

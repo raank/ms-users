@@ -37,8 +37,6 @@ class RouteServiceProvider extends ServiceProvider
                     'middleware' => [CorsMiddleware::class]
                 ],
                 static function ($router) {
-                    $router->group([], fn ($router) => require __DIR__ . '/../../routes/api.php');
-
                     $router->group(
                         [
                             'namespace' => 'V1',

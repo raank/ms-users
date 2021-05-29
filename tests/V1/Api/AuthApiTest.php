@@ -53,7 +53,7 @@ class AuthApiTest extends TestCase
             'password_confirmation' => '123@mudar'
         ];
 
-        $status = Response::HTTP_ACCEPTED;
+        $status = Response::HTTP_CREATED;
 
         $this->json('POST', '/api/v1/auth/register', $data)
             ->seeJson([
@@ -155,14 +155,14 @@ class AuthApiTest extends TestCase
         if ($login->response->getStatusCode() === $status) {
             $response = json_decode($login->response->getContent(), true);
     
-            $token = $response['data']['access_token'];
+            $token = $response['data']['auth']['token'];
             
             $this
                 ->json(
                     'HEAD',
                     '/api/v1/auth/check',
                     [],
-                    ['Authorization' => 'Bearer ' . $response['data']['access_token']]
+                    ['Authorization' => 'Bearer ' . $token]
                 )
                 ->seeStatusCode(Response::HTTP_OK);
 
@@ -171,7 +171,7 @@ class AuthApiTest extends TestCase
                     'HEAD',
                     '/api/v1/auth/refresh',
                     [],
-                    ['Authorization' => 'Bearer ' . $response['data']['access_token']]
+                    ['Authorization' => 'Bearer ' . $token]
                 )
                 ->seeStatusCode(Response::HTTP_OK);
 
@@ -189,12 +189,48 @@ class AuthApiTest extends TestCase
         $data = Arr::first($args);
         $email = Arr::get($data, 'email');
 
-        $this->json(
-            'POST',
-            '/api/v1/auth/forgot',
-            compact('email')
-        );
+        $status = Response::HTTP_OK;
 
-        fwrite(STDERR, json_encode($this->response->getContent()));
+        $this
+            ->json(
+                'POST',
+                '/api/v1/auth/forgot',
+                compact('email')
+            )
+            ->seeJson([
+                'message' => $this->makeMessage($status)
+            ])
+            ->seeStatusCode($status);
+    }
+
+    /**
+     * Teting check token.
+     *
+     * @depends testRegister
+     * @return void
+     */
+    public function testResetPassword(...$args)
+    {
+        $data = Arr::first($args);
+        $email = Arr::get($data, 'email');
+        $rememberToken = \App\Models\V1\User::where('email', '=', $email)
+            ->first()
+            ->remember_token;
+
+        $status = Response::HTTP_OK;
+
+        $this
+            ->json(
+                'POST',
+                '/api/v1/auth/reset/' . $rememberToken,
+                [
+                    'password' => '12345',
+                    'password_confirmation' => '12345'
+                ]
+            )
+            ->seeJson([
+                'message' => $this->makeMessage($status)
+            ])
+            ->seeStatusCode($status);
     }
 }

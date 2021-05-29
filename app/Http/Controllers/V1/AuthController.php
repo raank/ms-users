@@ -310,25 +310,28 @@ class AuthController extends Controller implements AuthControllerInterface
             ])
         ]);
 
-        /** @var SendMailMailgunSQS | Sendmail with SQS */
-        $job = (new SendMailMailgunSQS($user, $request->all()))
-            ->setSubject(__('Reset your password!'))
-            ->setMessageGroupId('forgot')
-            ->setTemplate('forgot-password')
-            ->onQueue(
-                config('aws.sqs.queue')
-            )
-            ->setMessageAttributes(
-                Arr::only(
-                    $user->toArray(),
-                    ['name', 'email', 'username']
+        
+        if (env('APP_ENV') !== 'testing') {
+            /** @var SendMailMailgunSQS | Sendmail with SQS */
+            $job = (new SendMailMailgunSQS($user, $request->all()))
+                ->setSubject(__('Reset your password!'))
+                ->setMessageGroupId('forgot')
+                ->setTemplate('forgot-password')
+                ->onQueue(
+                    config('aws.sqs.queue')
                 )
-            );
+                ->setMessageAttributes(
+                    Arr::only(
+                        $user->toArray(),
+                        ['name', 'email', 'username']
+                    )
+                );
 
-        $this->messages
-            ->store(
-                $job->dispatch()
-            );
+            $this->messages
+                ->store(
+                    $job->dispatch()
+                );
+        }
 
         return $this->response();
     }

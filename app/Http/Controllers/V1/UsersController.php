@@ -95,28 +95,24 @@ class UsersController extends Controller implements UsersControllerInterface
     {
         $this->exists($id, User::class);
 
-        $request->merge([
-            'type' => $request->get('type', 'default'),
-            'active' => $request->get('active', true),
-            'password' => $request->get('password', null),
-            'remember_token' => $request->get('remember_token', Str::random(32))
+        $this->validate($request, [
+            'name' => ['string'],
+            'username' => ['string', 'unique:users,username,' . $id . ',_id'],
+            'email' => ['email', 'unique:users,email,' . $id . ',_id'],
+            'document' => ['string'],
+            'active' => ['boolean']
         ]);
 
-        $this->validate($request, [
-            'name' => ['required', 'string'],
-            'username' => ['string', 'unique:users,username,' . $id . ',_id'],
-            'email' => ['required', 'email', 'unique:users,email,' . $id . ',_id'],
-            'document' => ['string'],
-            'active' => ['boolean'],
-            'password' => ['string', 'confirmed'],
-        ]);
+        $updated = $this->repository
+            ->update(
+                $id,
+                $request->all()
+            );
+        
+        $user = $this->repository->find($id);
 
         return $this->response(
-            $this->repository
-                ->update(
-                    $id,
-                    $request->all()
-                )
+            $user
         );
     }
 

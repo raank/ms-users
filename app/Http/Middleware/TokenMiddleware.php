@@ -20,15 +20,18 @@ class TokenMiddleware
     public function handle(Request $request, Closure $next)
     {
         $key = 'x-app-token';
-        $has = $request->headers->has($key);
-        
         $token = env('APP_TOKEN');
+
+        if ($request->headers->has($key) === false) {
+            return $this->unauthorized();
+        }
+
         $decrypted = Crypt::decrypt(
             $request->headers
                 ->get($key)
         );
 
-        if (!$has && ($has && $decrypted === $token)) {
+        if ($decrypted !== $token) {
             return $this->unauthorized();
         }
 
