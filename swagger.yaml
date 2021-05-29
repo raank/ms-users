@@ -300,6 +300,320 @@ paths:
       security:
         -
           bearerAuth: []
+  /v1/users:
+    get:
+      tags:
+        - v1.users
+      summary: 'All users.'
+      operationId: 'App\Http\Controllers\V1\UsersController::index'
+      responses:
+        '200':
+          description: 'Successful action'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v1.paginated'
+        '400':
+          description: 'This information could not be processed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: 'You are not authorized for this action'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+      security:
+        -
+          apiToken: []
+    post:
+      tags:
+        - v1.users
+      summary: 'Storing a new User.'
+      operationId: 'App\Http\Controllers\V1\UsersController::store'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - name
+                - email
+                - username
+                - password
+                - password_confirmation
+              properties:
+                name:
+                  description: 'The name of user.'
+                  type: string
+                email:
+                  description: 'The email of user.'
+                  type: string
+                password:
+                  description: 'The password of user.'
+                  type: string
+                password_confirmation:
+                  description: 'The password confirmation.'
+                  type: string
+                username:
+                  description: 'The username of user.'
+                  type: string
+                document:
+                  description: 'The document of user.'
+                  type: string
+              type: object
+              example:
+                name: 'John Doe'
+                email: john@doe.com
+                password: password123
+                password_confirmation: password123
+                username: john.doe
+                document: '12345678'
+      responses:
+        '200':
+          description: 'Successful action'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { description: 'Message of Response', type: string, example: 'Successful action' }
+                  data: { $ref: '#/components/schemas/v1.model_user' }
+                type: object
+        '400':
+          description: 'This information could not be processed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: 'You are not authorized for this action'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+      security:
+        -
+          apiToken: []
+  '/v1/users/{_id}':
+    get:
+      tags:
+        - v1.users
+      summary: 'Show user specified.'
+      operationId: 'App\Http\Controllers\V1\UsersController::show'
+      parameters:
+        -
+          name: _id
+          in: path
+          description: 'Identification of User'
+          required: true
+          schema:
+            type: string
+          example: 60aeba949828bb0c57abc123
+      responses:
+        '200':
+          description: 'Successful action'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { description: 'Message of Response', type: string, example: 'Successful action' }
+                  data: { $ref: '#/components/schemas/v1.model_user' }
+                type: object
+        '400':
+          description: 'This information could not be processed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: 'You are not authorized for this action'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: 'This information could not be found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notfound'
+      security:
+        -
+          apiToken: []
+    put:
+      tags:
+        - v1.users
+      summary: 'Update user specified.'
+      operationId: 'App\Http\Controllers\V1\UsersController::update'
+      parameters:
+        -
+          name: _id
+          in: path
+          description: 'Identification of User'
+          required: true
+          schema:
+            type: string
+          example: 60aeba949828bb0c57abc123
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  description: 'The name of user.'
+                  type: string
+                email:
+                  description: 'The email of user.'
+                  type: string
+                username:
+                  description: 'The username of user.'
+                  type: string
+                document:
+                  description: 'The document of user.'
+                  type: string
+              type: object
+              example:
+                name: 'John Doe'
+                email: john@doe.com
+                username: john.doe
+                document: '12345678'
+      responses:
+        '200':
+          description: 'Successful action'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { description: 'Message of Response', type: string, example: 'Successful action' }
+                  data: { $ref: '#/components/schemas/v1.model_user' }
+                type: object
+        '400':
+          description: 'This information could not be processed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: 'You are not authorized for this action'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: 'This information could not be found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notfound'
+      security:
+        -
+          apiToken: []
+    delete:
+      tags:
+        - v1.users
+      summary: 'Delete user specified.'
+      operationId: 'App\Http\Controllers\V1\UsersController::destroy'
+      parameters:
+        -
+          name: _id
+          in: path
+          description: 'Identification of User'
+          required: true
+          schema:
+            type: string
+          example: 60aeba949828bb0c57abc123
+      responses:
+        '200':
+          description: 'Successful action'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { description: 'Message of Response', type: string, example: 'Successful action' }
+                type: object
+        '400':
+          description: 'This information could not be processed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: 'You are not authorized for this action'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: 'This information could not be found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notfound'
+      security:
+        -
+          apiToken: []
+  /v1/users/search:
+    post:
+      tags:
+        - v1.users
+      summary: 'Searching users User.'
+      operationId: 'App\Http\Controllers\V1\UsersController::search'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                where:
+                  description: 'Where Condition.'
+                  type: items
+                whereNotNull:
+                  description: 'Where field not null.'
+                  type: items
+                whereNull:
+                  description: 'Where field is nullable.'
+                  type: items
+                orderBy:
+                  description: 'The password confirmation.'
+                  type: items
+                whereBetween:
+                  description: 'The username of user.'
+                  type: items
+              type: object
+              example:
+                where:
+                  - [field_name, operator, value]
+                  - [name, LIKE, john]
+                whereNotNull:
+                  - field_name
+                whereNull:
+                  - field_name
+                orderBy:
+                  - { field_name: field_name, order: DESC }
+                whereBetween:
+                  - { field_name: [from_value, to_value] }
+      responses:
+        '200':
+          description: 'Successful action'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/v1.paginated'
+        '400':
+          description: 'This information could not be processed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: 'You are not authorized for this action'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+      security:
+        -
+          apiToken: []
 components:
   schemas:
     BadRequest:
@@ -365,6 +679,83 @@ components:
         user:
           $ref: '#/components/schemas/v1.model_user'
       type: object
+    v1.pagination.links:
+      description: 'List of Links'
+      properties:
+        url:
+          description: 'URL of Link'
+          type: string
+          example: 'http://localhost'
+        label:
+          description: 'Label of Link'
+          type: string
+          example: my-label
+        active:
+          description: 'Link is active'
+          type: boolean
+          example: true
+      type: object
+    v1.paginated:
+      description: 'Response CRUD paginated'
+      properties:
+        message:
+          description: 'Message of Response'
+          type: string
+          example: 'Successful action'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/v1.model_user'
+        current_page:
+          description: 'Current page'
+          type: integer
+          example: 1
+        first_page_url:
+          description: 'First page URL'
+          type: string
+          example: 'http://localhost'
+        from:
+          description: 'From start items'
+          type: integer
+          example: 1
+        last_page:
+          description: 'Last Page Number'
+          type: integer
+          example: 1
+        last_page_url:
+          description: 'Last page URL'
+          type: string
+          example: 'http://localhost'
+        links:
+          description: 'List of Links'
+          type: array
+          items:
+            $ref: '#/components/schemas/v1.pagination.links'
+        next_page_url:
+          description: 'Next page URL'
+          type: string
+          example: 'http://localhost'
+        path:
+          description: 'Path of current URL'
+          type: string
+          example: 'http://localhost'
+        per_page:
+          description: 'Items number per page'
+          type: integer
+          example: 1
+        prev_page_url:
+          description: 'Prev page URL'
+          type: string
+          example: 'http://localhost'
+        to:
+          description: 'Items to end page'
+          type: integer
+          example: 1
+        total:
+          description: 'Total of Items'
+          type: integer
+          example: 1
+      type: object
     v1.model_user:
       description: 'Response data of user'
       properties:
@@ -416,15 +807,13 @@ components:
           example: '2021-01-01T00:00:00.000000Z'
       type: object
   securitySchemes:
-    Bearer:
+    apiToken:
       type: apiKey
-      name: Authorization
+      name: X-App-Token
       in: header
     bearerAuth:
       type: http
       description: 'Informations of API.'
-      name: Authorization
-      in: header
       scheme: bearer
 tags:
   -
