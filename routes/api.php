@@ -35,17 +35,15 @@ define('APP_URL', sprintf('%s/api', env('APP_URL')));
  *
  * Security
  * @OA\SecurityScheme(
- *  securityScheme="Bearer",
+ *  securityScheme="apiToken",
  *  type="apiKey",
- *  name="Authorization",
+ *  name="X-App-Token",
  *  in="header"
  * )
  * 
  * @OA\SecurityScheme(
  *  securityScheme="bearerAuth",
  *  type="http",
- *  name="Authorization",
- *  in="header",
  *  scheme="bearer"
  * )
  */
