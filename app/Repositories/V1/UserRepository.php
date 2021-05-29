@@ -33,7 +33,9 @@ class UserRepository implements RepositoryInterface
             $fillable[$key] = $data[$key] ?? null;
         }
 
-        return Model::create($fillable);
+        $item = Model::create($fillable);
+
+        return Model::find($item->_id);
     }
 
     /**

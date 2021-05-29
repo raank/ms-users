@@ -14,7 +14,15 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Laravel\Lumen\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
+/**
+ * @OA\Schema(
+ *   schema="BadRequest",
+ *   description="This information could not be processed",
+ *   @OA\Property(property="message", type="string", description="Message of Response", example="This information could not be processed")
+ * )
+ */
 class Handler extends ExceptionHandler
 {
     /**
@@ -93,6 +101,21 @@ class Handler extends ExceptionHandler
                 ->json([
                     'message' => __('status.404'),
                 ], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($exception instanceof MethodNotAllowedHttpException) {
+            return response()
+                ->json(
+                    [
+                        'message' => __('status.' . Response::HTTP_METHOD_NOT_ALLOWED),
+                        'trace' => [
+                            'trace' => $exception->getMessage(),
+                            'file' => $exception->getFile(),
+                            'line' => $exception->getLine()
+                        ]
+                    ],
+                    Response::HTTP_METHOD_NOT_ALLOWED
+                );
         }
 
         return parent::render($request, $exception);

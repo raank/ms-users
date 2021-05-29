@@ -5,6 +5,13 @@ namespace App\Exceptions;
 use Exception;
 use Illuminate\Http\Response;
 
+/**
+ * @OA\Schema(
+ *   schema="Notfound",
+ *   description="This information could not be found",
+ *   @OA\Property(property="message", type="string", description="Message of Response", example="This information could not be found")
+ * )
+ */
 class Notfound extends Exception
 {
     /**

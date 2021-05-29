@@ -63,6 +63,7 @@ $app->singleton(
 $app->configure('app');
 $app->configure('aws');
 $app->configure('mailgun');
+$app->configure('cors');
 
 /*
 |--------------------------------------------------------------------------
@@ -75,13 +76,15 @@ $app->configure('mailgun');
 |
 */
 
-// $app->middleware([
-//     App\Http\Middleware\ExampleMiddleware::class
-// ]);
-
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class
 ]);
+
+$app->middleware([
+    App\Http\Middleware\CorsMiddleware::class,
+    Fruitcake\Cors\HandleCors::class
+ ]);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -94,10 +97,18 @@ $app->routeMiddleware([
 |
 */
 
-// $app->register(App\Providers\AppServiceProvider::class);
+$app->register(App\Providers\AppServiceProvider::class);
 $app->register(App\Providers\AuthServiceProvider::class);
 $app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 $app->register(App\Providers\RouteServiceProvider::class);
+
+/*
+|--------------------------------------------------------------------------
+| Define constants to Documentation.
+|--------------------------------------------------------------------------
+*/
+
+define('APP_URL', sprintf('%s/api', env('APP_URL')));
 
 /*
 |--------------------------------------------------------------------------

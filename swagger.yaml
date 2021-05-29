@@ -1,0 +1,432 @@
+openapi: 3.0.0
+info:
+  title: ms-users
+  description: 'This is a micro authentication service and user crud. '
+  contact:
+    email: raank92@gmail.com
+  version: '1.0'
+servers:
+  -
+    url: 'http://localhost:8181/api'
+paths:
+  /v1/auth/register:
+    post:
+      tags:
+        - v1.auth
+      summary: 'User Registering on Application.'
+      operationId: 'App\Http\Controllers\V1\AuthController::register'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - name
+                - email
+                - username
+                - password
+                - password_confirmation
+              properties:
+                name:
+                  description: 'The name of user.'
+                  type: string
+                email:
+                  description: 'The email of user.'
+                  type: string
+                password:
+                  description: 'The password of user.'
+                  type: string
+                password_confirmation:
+                  description: 'The password confirmation.'
+                  type: string
+                username:
+                  description: 'The username of user.'
+                  type: string
+                document:
+                  description: 'The document of user.'
+                  type: string
+              type: object
+              example:
+                name: 'John Doe'
+                email: john@doe.com
+                password: password123
+                password_confirmation: password123
+                username: john.doe
+                document: '12345678'
+      responses:
+        '201':
+          description: 'Information has been successfully registered'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { description: 'Message of Response', type: string, example: 'Information has been successfully registered' }
+                  data: { $ref: '#/components/schemas/v1.auth_response' }
+                type: object
+        '400':
+          description: 'This information could not be processed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '422':
+          description: 'There is some incorrect information'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Validation'
+  /v1/auth/login:
+    post:
+      tags:
+        - v1.auth
+      summary: 'User login on Application.'
+      operationId: 'App\Http\Controllers\V1\AuthController::login'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  description: 'The email of user.'
+                  type: string
+                password:
+                  description: 'The password of user.'
+                  type: string
+              type: object
+              example:
+                email: john@doe.com
+                password: password123
+      responses:
+        '200':
+          description: 'Successful action'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { description: 'Message of Response', type: string, example: 'Successful action' }
+                  data: { $ref: '#/components/schemas/v1.auth_response' }
+                type: object
+        '400':
+          description: 'This information could not be processed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '422':
+          description: 'There is some incorrect information'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Validation'
+        '404':
+          description: 'This information could not be found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notfound'
+  /v1/auth/forgot:
+    post:
+      tags:
+        - v1.auth
+      summary: 'User forgot password.'
+      operationId: 'App\Http\Controllers\V1\AuthController::forgot'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  description: 'The email of user.'
+                  type: string
+              type: object
+              example:
+                email: john@doe.com
+      responses:
+        '200':
+          description: 'Successful action'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { description: 'Message of Response', type: string, example: 'Successful action' }
+                type: object
+        '400':
+          description: 'This information could not be processed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '404':
+          description: 'This information could not be found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notfound'
+        '422':
+          description: 'There is some incorrect information'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Validation'
+  '/v1/auth/reset/{remember_token}':
+    post:
+      tags:
+        - v1.auth
+      summary: 'User reset password.'
+      operationId: 'App\Http\Controllers\V1\AuthController::reset'
+      parameters:
+        -
+          name: remember_token
+          in: path
+          description: 'Remember token of User'
+          required: true
+          schema:
+            type: string
+          example: ABc123DefG
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - password
+                - password_confirmation
+              properties:
+                password:
+                  description: 'The password of user.'
+                  type: string
+                password_confirmation:
+                  description: 'The password confirmation.'
+                  type: string
+              type: object
+              example:
+                password: password123
+                password_confirmation: password123
+      responses:
+        '200':
+          description: 'Successful action'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { description: 'Message of Response', type: string, example: 'Successful action' }
+                type: object
+        '404':
+          description: 'This information could not be found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notfound'
+        '422':
+          description: 'There is some incorrect information'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Validation'
+  /v1/auth/check:
+    head:
+      tags:
+        - v1.auth
+      summary: 'Checking if user is authenticated.'
+      operationId: 'App\Http\Controllers\V1\AuthController::check'
+      responses:
+        '200':
+          description: 'Successful action'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { description: 'Message of Response', type: string, example: 'Successful action' }
+                type: object
+        '400':
+          description: 'This information could not be processed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: 'You are not authorized for this action'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: 'This information could not be found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notfound'
+      security:
+        -
+          bearerAuth: []
+  /v1/auth/refresh:
+    get:
+      tags:
+        - v1.auth
+      summary: 'User refresh token.'
+      operationId: 'App\Http\Controllers\V1\AuthController::refresh'
+      responses:
+        '200':
+          description: 'Successful action'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { description: 'Message of Response', type: string, example: 'Successful action' }
+                  data: { $ref: '#/components/schemas/v1.auth_response' }
+                type: object
+        '400':
+          description: 'This information could not be processed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: 'You are not authorized for this action'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: 'This information could not be found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notfound'
+      security:
+        -
+          bearerAuth: []
+components:
+  schemas:
+    BadRequest:
+      description: 'This information could not be processed'
+      properties:
+        message:
+          description: 'Message of Response'
+          type: string
+          example: 'This information could not be processed'
+      type: object
+    Notfound:
+      description: 'This information could not be found'
+      properties:
+        message:
+          description: 'Message of Response'
+          type: string
+          example: 'This information could not be found'
+      type: object
+    Unauthorized:
+      description: 'You are not authorized for this action'
+      properties:
+        message:
+          description: 'Message of Response'
+          type: string
+          example: 'You are not authorized for this action'
+      type: object
+    Validation:
+      description: 'There is some incorrect information'
+      properties:
+        message:
+          description: 'Message of Response'
+          type: string
+        errors:
+          description: 'Errors of Request'
+          type: object
+      type: object
+      example:
+        message: 'There is some incorrect information'
+        errors:
+          field:
+            - 'Message of Validation'
+    v1.token:
+      description: 'Response auth token'
+      properties:
+        token:
+          description: 'Token access'
+          type: string
+          example: abc1234defg
+        type:
+          description: 'Type of Token'
+          type: string
+          example: Bearer
+        expires:
+          description: 'Expires token in'
+          type: integer
+          example: 3600
+      type: object
+    v1.auth_response:
+      description: 'Response data of Authentication'
+      properties:
+        auth:
+          $ref: '#/components/schemas/v1.token'
+        user:
+          $ref: '#/components/schemas/v1.model_user'
+      type: object
+    v1.model_user:
+      description: 'Response data of user'
+      properties:
+        _id:
+          description: 'Identification of User'
+          type: string
+          example: 60aeba949828bb0c57abc123
+        type:
+          description: 'Type of User'
+          type: string
+          enum:
+            - default
+            - admin
+          example: default
+        name:
+          description: 'Name of User'
+          type: string
+          example: 'John Doe'
+        email:
+          description: 'Email of User'
+          type: string
+          example: john@doe.com
+        username:
+          description: Username
+          type: string
+          example: john.doe
+        document:
+          description: 'Document of User'
+          type: string
+          example: '123456789'
+        active:
+          description: 'User is active'
+          type: boolean
+          enum:
+            - true
+            - false
+          example: true
+        deleted_at:
+          description: 'Date of Destroy'
+          type: string
+          example: null
+        updated_at:
+          description: 'Date of last updated'
+          type: string
+          example: '2021-01-01T00:00:00.000000Z'
+        created_at:
+          description: 'Date of Created'
+          type: string
+          example: '2021-01-01T00:00:00.000000Z'
+      type: object
+  securitySchemes:
+    Bearer:
+      type: apiKey
+      name: Authorization
+      in: header
+    bearerAuth:
+      type: http
+      description: 'Informations of API.'
+      name: Authorization
+      in: header
+      scheme: bearer
+tags:
+  -
+    name: v1.auth
+    description: 'Authentication routes'
