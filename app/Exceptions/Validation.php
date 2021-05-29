@@ -5,6 +5,22 @@ namespace App\Exceptions;
 use Exception;
 use Illuminate\Http\Response;
 
+/**
+ * @OA\Schema(
+ *  schema="Validation",
+ *  description="There is some incorrect information",
+ *  @OA\Property(property="message", type="string", description="Message of Response"),
+ *  @OA\Property(property="errors", type="object", description="Errors of Request"),
+ *  example={
+ *      "message": "There is some incorrect information",
+ *      "errors": {
+ *          "field": {
+ *              "Message of Validation"
+ *          }
+ *      }
+ *  }
+ * )
+ */
 class Validation extends Exception
 {
     /**

@@ -14,6 +14,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 
+/**
+ * @OA\Schema(
+ *  schema="v1.model_user",
+ *  type="object",
+ *  description="Response data of user",
+ *  @OA\Property(property="_id", type="string", description="Identification of User", example="60aeba949828bb0c57abc123"),
+ *  @OA\Property(property="type", type="string", description="Type of User", example="default", enum={"default", "admin"}),
+ *  @OA\Property(property="name", type="string", description="Name of User", example="John Doe"),
+ *  @OA\Property(property="email", type="string", description="Email of User", example="john@doe.com"),
+ *  @OA\Property(property="username", type="string", description="Username", example="john.doe"),
+ *  @OA\Property(property="document", type="string", description="Document of User", example="123456789"),
+ *  @OA\Property(property="active", type="boolean", description="User is active", example=true, enum={true, false}),
+ *  @OA\Property(property="deleted_at", type="string", description="Date of Destroy", example=null),
+ *  @OA\Property(property="updated_at", type="string", description="Date of last updated", example="2021-01-01T00:00:00.000000Z"),
+ *  @OA\Property(property="created_at", type="string", description="Date of Created", example="2021-01-01T00:00:00.000000Z"),
+ * )
+ */
 class User extends Model implements AuthenticatableContract, AuthorizableContract, JWTSubject
 {
     use Authenticatable, Authorizable, HasFactory;

@@ -17,6 +17,24 @@ use App\Repositories\V1\UserRepository;
 use App\Repositories\V1\MessageRepository;
 use App\Http\Controllers\AuthControllerInterface;
 
+/**
+ * @OA\Schema(
+ *  schema="v1.token",
+ *  type="object",
+ *  description="Response auth token",
+ *  @OA\Property(property="token", type="string", description="Token access", example="abc1234defg"),
+ *  @OA\Property(property="type", type="string", description="Type of Token", example="Bearer"),
+ *  @OA\Property(property="expires", type="integer", description="Expires token in", example=3600)
+ * )
+ * 
+ * @OA\Schema(
+ *  schema="v1.auth_response",
+ *  type="object",
+ *  description="Response data of Authentication",
+ *  @OA\Property(property="auth", ref="#/components/schemas/v1.token"),
+ *  @OA\Property(property="user", ref="#/components/schemas/v1.model_user"),
+ * )
+ */
 class AuthController extends Controller implements AuthControllerInterface
 {
     /**
@@ -59,6 +77,59 @@ class AuthController extends Controller implements AuthControllerInterface
     }
 
     /**
+     * User Registering on Application.
+     *
+     * @OA\Post(
+     *  tags={"v1.auth"},
+     *  path="/v1/auth/register",
+     *  @OA\Response(
+     *      response="201",
+     *      description="Information has been successfully registered",
+     *      @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *              @OA\Property(property="message", type="string", description="Message of Response", example="Information has been successfully registered"),
+     *              @OA\Property(
+     *                  property="data",
+     *                  ref="#/components/schemas/v1.auth_response"
+     *              )
+     *          )
+     *      )
+     *  ),
+     *  @OA\Response(
+     *      response="400",
+     *      description="This information could not be processed",
+     *      @OA\JsonContent(ref="#/components/schemas/BadRequest"),
+     *  ),
+     *  @OA\Response(
+     *      response="422",
+     *      description="There is some incorrect information",
+     *      @OA\JsonContent(ref="#/components/schemas/Validation"),
+     *  ),
+     *  @OA\RequestBody(
+     *      @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *              @OA\Property(property="name", type="string", description="The name of user."),
+     *              @OA\Property(property="email", type="string", description="The email of user."),
+     *              @OA\Property(property="password", type="string", description="The password of user."),
+     *              @OA\Property(property="password_confirmation", type="string", description="The password confirmation."),
+     *              @OA\Property(property="username", type="string", description="The username of user."),
+     *              @OA\Property(property="document", type="string", description="The document of user."),
+     *              required={"name", "email", "username", "password", "password_confirmation"},
+     *              example={
+     *                  "name": "John Doe",
+     *                  "email": "john@doe.com",
+     *                  "password": "password123",
+     *                  "password_confirmation": "password123",
+     *                  "username": "john.doe",
+     *                  "document": "12345678"
+     *              }
+     *          )
+     *      )
+     *  )
+     * )
+     *
      * @inheritDoc
      */
     public function register(Request $request): JsonResponse
@@ -85,18 +156,69 @@ class AuthController extends Controller implements AuthControllerInterface
                 $request->all()
             );
 
-        $response = array_merge([
-            'access_token' => Auth::attempt($request->only(['email', 'password'])),
-            'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60
-        ], $user->toArray());
+        $auth = [
+            'token' => Auth::attempt($request->only(['email', 'password'])),
+            'type' => 'bearer',
+            'expires' => auth()->factory()->getTTL() * 60
+        ];
 
         return $this->response(
-            $response, JsonResponse::HTTP_ACCEPTED
+            compact('auth', 'user'),
+            JsonResponse::HTTP_CREATED
         );
     }
 
     /**
+     * User login on Application.
+     *
+     * @OA\Post(
+     *  tags={"v1.auth"},
+     *  path="/v1/auth/login",
+     *  @OA\Response(
+     *      response="200",
+     *      description="Successful action",
+     *      @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *              @OA\Property(property="message", type="string", description="Message of Response", example="Successful action"),
+     *              @OA\Property(
+     *                  property="data",
+     *                  ref="#/components/schemas/v1.auth_response"
+     *              )
+     *          )
+     *      )
+     *  ),
+     *  @OA\Response(
+     *      response="400",
+     *      description="This information could not be processed",
+     *      @OA\JsonContent(ref="#/components/schemas/BadRequest"),
+     *  ),
+     *  @OA\Response(
+     *      response="422",
+     *      description="There is some incorrect information",
+     *      @OA\JsonContent(ref="#/components/schemas/Validation"),
+     *  ),
+     *  @OA\Response(
+     *      response="404",
+     *      description="This information could not be found",
+     *      @OA\JsonContent(ref="#/components/schemas/Notfound"),
+     *  ),
+     *  @OA\RequestBody(
+     *      @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *              @OA\Property(property="email", type="string", description="The email of user."),
+     *              @OA\Property(property="password", type="string", description="The password of user."),
+     *              required={"email", "password"},
+     *              example={
+     *                  "email": "john@doe.com",
+     *                  "password": "password123"
+     *              }
+     *          )
+     *      )
+     *  )
+     * )
+     *
      * @inheritDoc
      */
     public function login(Request $request): JsonResponse
@@ -116,18 +238,62 @@ class AuthController extends Controller implements AuthControllerInterface
             return $this->invalidCredentials();
         }
 
-        $response = array_merge([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60
-        ], $user->toArray());
+        $auth = [
+            'token' => $token,
+            'type' => 'bearer',
+            'expires' => auth()->factory()->getTTL() * 60
+        ];
 
         return $this->response(
-            $response
+            compact('auth', 'user')
         );
     }
 
     /**
+     * User forgot password.
+     *
+     * @OA\Post(
+     *  tags={"v1.auth"},
+     *  path="/v1/auth/forgot",
+     *  @OA\Response(
+     *      response="200",
+     *      description="Successful action",
+     *      @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *              @OA\Property(property="message", type="string", description="Message of Response", example="Successful action"),
+     *          )
+     *      )
+     *  ),
+     *  @OA\Response(
+     *      response="400",
+     *      description="This information could not be processed",
+     *      @OA\JsonContent(ref="#/components/schemas/BadRequest"),
+     *  ),
+     *  @OA\Response(
+     *      response="404",
+     *      description="This information could not be found",
+     *      @OA\JsonContent(ref="#/components/schemas/Notfound"),
+     *  ),
+     *  @OA\Response(
+     *      response="422",
+     *      description="There is some incorrect information",
+     *      @OA\JsonContent(ref="#/components/schemas/Validation"),
+     *  ),
+     *  @OA\RequestBody(
+     *      @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *              @OA\Property(property="email", type="string", description="The email of user."),
+     *              required={"email", "password"},
+     *              example={
+     *                  "email": "john@doe.com"
+     *              }
+     *          )
+     *      )
+     *  )
+     * )
+     *
      * @inheritDoc
      */
     public function forgot(Request $request): JsonResponse
@@ -159,15 +325,66 @@ class AuthController extends Controller implements AuthControllerInterface
                 )
             );
 
-        return $this->response(
-            $this->messages
-                ->store(
-                    $job->dispatch()
-                )
-        );
+        $this->messages
+            ->store(
+                $job->dispatch()
+            );
+
+        return $this->response();
     }
 
     /**
+     * User reset password.
+     *
+     * @OA\Post(
+     *  tags={"v1.auth"},
+     *  path="/v1/auth/reset/{remember_token}",
+     *  @OA\Parameter(
+     *      name="remember_token",
+     *      in="path",
+     *      required=true,
+     *      description="Remember token of User",
+     *      example="ABc123DefG",
+     *      @OA\Schema(
+     *          type="string"
+     *      )
+     *  ),
+     *  @OA\Response(
+     *      response="200",
+     *      description="Successful action",
+     *      @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *              @OA\Property(property="message", type="string", description="Message of Response", example="Successful action"),
+     *          )
+     *      )
+     *  ),
+     *  @OA\Response(
+     *      response="404",
+     *      description="This information could not be found",
+     *      @OA\JsonContent(ref="#/components/schemas/Notfound"),
+     *  ),
+     *  @OA\Response(
+     *      response="422",
+     *      description="There is some incorrect information",
+     *      @OA\JsonContent(ref="#/components/schemas/Validation"),
+     *  ),
+     *  @OA\RequestBody(
+     *      @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *              @OA\Property(property="password", type="string", description="The password of user."),
+     *              @OA\Property(property="password_confirmation", type="string", description="The password confirmation."),
+     *              required={"password", "password_confirmation"},
+     *              example={
+     *                  "password": "password123",
+     *                  "password_confirmation": "password123"
+     *              }
+     *          )
+     *      )
+     *  )
+     * )
+     *
      * @inheritDoc
      */
     public function reset(Request $request, string $token): JsonResponse
@@ -197,12 +414,45 @@ class AuthController extends Controller implements AuthControllerInterface
                 ])
             );
 
-        return $this->response(
-            compact('updated')
-        );
+        return $this->response();
     }
 
     /**
+     * Checking if user is authenticated.
+     *
+     * @OA\Head(
+     *  tags={"v1.auth"},
+     *  path="/v1/auth/check",
+     *  security={
+     *      {"bearerAuth": {}}
+     *  },
+     *  @OA\Response(
+     *      response="200",
+     *      description="Successful action",
+     *      @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *              @OA\Property(property="message", type="string", description="Message of Response", example="Successful action"),
+     *          )
+     *      )
+     *  ),
+     *  @OA\Response(
+     *      response="400",
+     *      description="This information could not be processed",
+     *      @OA\JsonContent(ref="#/components/schemas/BadRequest"),
+     *  ),
+     *  @OA\Response(
+     *      response="401",
+     *      description="You are not authorized for this action",
+     *      @OA\JsonContent(ref="#/components/schemas/Unauthorized"),
+     *  ),
+     *  @OA\Response(
+     *      response="404",
+     *      description="This information could not be found",
+     *      @OA\JsonContent(ref="#/components/schemas/Notfound"),
+     *  )
+     * )
+     *
      * @inheritDoc
      */
     public function check(Request $request): JsonResponse
@@ -219,6 +469,45 @@ class AuthController extends Controller implements AuthControllerInterface
     }
 
     /**
+     * User refresh token.
+     *
+     * @OA\Get(
+     *  tags={"v1.auth"},
+     *  path="/v1/auth/refresh",
+     *  security={
+     *      {"bearerAuth": {}}
+     *  },
+     *  @OA\Response(
+     *      response="200",
+     *      description="Successful action",
+     *      @OA\MediaType(
+     *          mediaType="application/json",
+     *          @OA\Schema(
+     *              @OA\Property(property="message", type="string", description="Message of Response", example="Successful action"),
+     *              @OA\Property(
+     *                  property="data",
+     *                  ref="#/components/schemas/v1.auth_response"
+     *              )
+     *          )
+     *      )
+     *  ),
+     *  @OA\Response(
+     *      response="400",
+     *      description="This information could not be processed",
+     *      @OA\JsonContent(ref="#/components/schemas/BadRequest"),
+     *  ),
+     *  @OA\Response(
+     *      response="401",
+     *      description="You are not authorized for this action",
+     *      @OA\JsonContent(ref="#/components/schemas/Unauthorized"),
+     *  ),
+     *  @OA\Response(
+     *      response="404",
+     *      description="This information could not be found",
+     *      @OA\JsonContent(ref="#/components/schemas/Notfound"),
+     *  )
+     * )
+     *
      * @inheritDoc
      */
     public function refresh(Request $request): JsonResponse
@@ -229,10 +518,14 @@ class AuthController extends Controller implements AuthControllerInterface
             return $this->unauthorized();
         }
 
-        return $this->response([
-            'access_token' => auth()->refresh(),
-            'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60
-        ]);
+        $auth = [
+            'token' => auth()->refresh(),
+            'type' => 'bearer',
+            'expires' => auth()->factory()->getTTL() * 60
+        ];
+
+        return $this->response(
+            compact('auth', 'user')
+        );
     }
 }
